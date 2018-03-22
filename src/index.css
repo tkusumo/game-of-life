@@ -1,0 +1,28 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  display: grid;
+  grid-template-columns: 1fr;
+  margin-left: 10%;
+  width: 80%;
+  font-family: fantasy;
+}
+
+.cell {
+  width: 21px;
+  height: 21px;
+  background-color: gray;
+  border-style: solid;
+  border-width: 1px;
+  border-color: white;
+}
+
+.cell:hover {
+  background-color: red;
+}
+
+.alive {
+  background-color: green;
+}
