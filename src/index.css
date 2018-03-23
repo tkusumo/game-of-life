@@ -10,10 +10,41 @@ body {
   font-family: fantasy;
 }
 
+.main {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-rows: auto;
+  grid-template-areas:
+    'info content results'
+    'info content results'
+    'info content results';
+}
+
+.info {
+  grid-area: info;
+}
+
+.content {
+  grid-area: content;
+}
+
+.results {
+  grid-area: results;
+}
+
+@media (max-width: 1200px) {
+  .main {
+    grid-template-areas:
+      'info info info'
+      'content content content'
+      'results results results';
+  }
+}
+
 .cell {
   width: 21px;
   height: 21px;
-  background-color: gray;
   border-style: solid;
   border-width: 1px;
   border-color: white;
@@ -21,8 +52,4 @@ body {
 
 .cell:hover {
   background-color: red;
-}
-
-.alive {
-  background-color: green;
 }

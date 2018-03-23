@@ -7,11 +7,11 @@ const Cell = (props) => {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        width: 25,
-        height: 25,
+        width: 27,
+        height: 27,
         backgroundColor: props.color,
       }}>
-      <span style={{ color: 'white', fontFamily: 'Roboto', fontSize: 14 }}>
+      <span style={{ color: props.fontColor, fontFamily: 'Roboto', fontSize: 14 }}>
         {props.children}
       </span>
     </div>

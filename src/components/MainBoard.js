@@ -4,7 +4,8 @@ import { withStyles } from 'material-ui/styles';
 import Button from 'material-ui/Button';
 import _ from 'lodash';
 
-import Cell from './Cell';
+import Info from './Info';
+import Results from './Results';
 
 const cellColor = [
   { name: 'GREEN', color: '#4CAF50' },
@@ -23,11 +24,9 @@ class MainBoard extends Component {
       generationCount: 0,
       rows: 0,
       columns: 0,
-      greenCount: 0,
-      redCount: 0,
-      blueCount: 0,
-      purpleCount: 0,
-      orangeCount: 0,
+      colorCount: { greenCount: 0, redCount: 0, blueCount: 0, purpleCount: 0, orangeCount: 0 },
+      initialCount: { greenCount: 0, redCount: 0, blueCount: 0, purpleCount: 0, orangeCount: 0 },
+      gamePausedOrEnded: false,
     };
   }
 
@@ -88,7 +87,6 @@ class MainBoard extends Component {
   };
 
   initializeBoard = (rows, columns) => {
-    //const { rows, columns } = this.props;
     let board = [];
 
     for (let i = 0; i < (rows * columns); i++) {
@@ -109,11 +107,9 @@ class MainBoard extends Component {
         rows: rows,
         columns: columns,
         generationCount: 0,
-        greenCount: 0,
-        redCount: 0,
-        blueCount: 0,
-        purpleCount: 0,
-        orangeCount: 0,
+        colorCount: { greenCount: 0, redCount: 0, blueCount: 0, purpleCount: 0, orangeCount: 0 },
+        initialCount: { greenCount: 0, redCount: 0, blueCount: 0, purpleCount: 0, orangeCount: 0 },
+        gamePausedOrEnded: false,
       });
   };
 
@@ -141,11 +137,13 @@ class MainBoard extends Component {
     this.setState(
       {
         boardArr: cellsArr,
-        greenCount: populations[0].GREEN,
-        redCount: populations[1].RED,
-        blueCount: populations[2].BLUE,
-        purpleCount: populations[3].PURPLE,
-        orangeCount: populations[4].ORANGE,
+        initialCount: {
+          greenCount: populations.GREEN,
+          redCount: populations.RED,
+          blueCount: populations.BLUE,
+          purpleCount: populations.PURPLE,
+          orangeCount: populations.ORANGE,
+        },
       });
   };
 
@@ -156,7 +154,7 @@ class MainBoard extends Component {
     let purple = 0;
     let orange = 0;
 
-    _.forEach(arr, function(item) {
+    _.forEach(arr, function (item) {
       if (item.color === 'GREEN') {
         green++;
       } else if (item.color === 'RED') {
@@ -170,8 +168,8 @@ class MainBoard extends Component {
       }
     });
 
-    return [{ GREEN: green }, { RED: red}, { BLUE: blue }, { PURPLE: purple }, { ORANGE: orange }];
-  }
+    return { GREEN: green, RED: red, BLUE: blue, PURPLE: purple, ORANGE: orange };
+  };
 
   playGame = () => {
     const stateCopy = this.state.boardArr.map((item) => {
@@ -185,7 +183,6 @@ class MainBoard extends Component {
       const alive = boardCopy[i].cell;
       const neighbors = boardCopy[i].neighbors;
       let countAlive = 0;
-      let color = 'BROWN';
 
       for (let j = 0; j < neighbors.length; j++) {
         if (boardCopy[neighbors[j]].cell) {
@@ -196,15 +193,14 @@ class MainBoard extends Component {
       if (alive) {
         if (countAlive < 2 || countAlive > 3) {
           boardCopy[i].cell = false;
-          boardCopy[i].color = color;
+          boardCopy[i].color = 'BROWN';
         }
       } else {
         if (countAlive === 3) {
           boardCopy[i].cell = true;
           const randColor = Math.floor(Math.random() * 5);
 
-          color = cellColor[randColor].name;
-          boardCopy[i].color = color;
+          boardCopy[i].color = cellColor[randColor].name;
         }
       }
 
@@ -213,30 +209,33 @@ class MainBoard extends Component {
 
     if (_.isEqual(newCopy, stateCopy)) {
       clearInterval(this.playInterval);
+      this.setState({ gamePausedOrEnded: true });
     } else {
       const populations = this.countPopulations(boardCopy);
       this.setState(
         {
           boardArr: boardCopy,
           generationCount: this.state.generationCount + 1,
-          greenCount: populations[0].GREEN,
-          redCount: populations[1].RED,
-          blueCount: populations[2].BLUE,
-          purpleCount: populations[3].PURPLE,
-          orangeCount: populations[4].ORANGE,
+          colorCount: {
+            greenCount: populations.GREEN,
+            redCount: populations.RED,
+            blueCount: populations.BLUE,
+            purpleCount: populations.PURPLE,
+            orangeCount: populations.ORANGE,
+          },
         });
     };
   };
 
   getColorIndex = (name) => {
-    return _.findIndex(cellColor, function(c) { return c.name === name });
-  } ;
+    return _.findIndex(cellColor, function (c) { return c.name === name; });
+  };
 
   renderCells() {
     return this.state.boardArr.map((item, i) => {
       return (
         <div
-          className={item.cell ? 'cell alive' : 'cell'}
+          className='cell'
           key={i}
           id={i}
           style={{ backgroundColor: cellColor[this.getColorIndex(item.color)].color }}
@@ -248,45 +247,41 @@ class MainBoard extends Component {
   handleSubmitSetup = (e) => {
     e.preventDefault();
     clearInterval(this.playInterval);
-    this.setState({ generationCount: 0 });
+    this.setState(
+      {
+        generationCount: 0,
+        gamePausedOrEnded: false,
+        colorCount: { greenCount: 0, redCount: 0, blueCount: 0, purpleCount: 0, orangeCount: 0 },
+      });
     this.populateCells();
   };
 
   handleSubmitPlay = (e) => {
     e.preventDefault();
     clearInterval(this.playInterval);
+    this.setState({ gamePausedOrEnded: false });
     this.playInterval = setInterval(this.playGame, 500);
   };
 
   handlePausePlay = (e) => {
     e.preventDefault();
     clearInterval(this.playInterval);
+    if (this.state.generationCount !== 0) {
+      this.setState({ gamePausedOrEnded: true });
+    }
   };
 
   render() {
     const { classes } = this.props;
 
     return (
-      <div style={styles.container}>
-        <div style={styles.leftContainer}>
-          <div style={{ padding: 20 }}>
-            <p>
-              There are five colors that representing five different populations.
-              The initial board size is 8 columns by 6 rows.
-              <hr />
-              Click on the <b>POPULATE</b> button to randomly place each population on to the board.
-              <br />
-              Click <b>PLAY</b> button to run the game.
-              <br />
-              Click <b>PAUSE</b> button to pause the game.
-              <br />
-              Update Rows and Columns fields to change the size of the board.
-              <br />
-              ENJOY!
-            </p>
+      <div className='main'>
+        <div className='info'>
+          <div style={{ padding: 10 }}>
+            <Info />
           </div>
         </div>
-        <div style={styles.boardContainer}>
+        <div className='content'>
           <div style={styles.buttonsContainer}>
             <Button className={classes.button} color='primary' onClick={this.handleSubmitSetup}>
               Populate
@@ -313,32 +308,12 @@ class MainBoard extends Component {
             </div>
           </div>
         </div>
-        <div style={styles.rightContainer}>
-          <div style={{ paddingLeft: 10, paddingTop: 20, fontFamily: 'Roboto', fontSize: 18 }}>
-            Generations: <span>{this.state.generationCount}</span>
-          </div>
-          <div style={{ padding: 20 }}>
-            <div style={styles.population}>
-              <Cell color={cellColor[0].color}>{this.state.greenCount}</Cell>
-              <span style={{ paddingLeft: 10 }}>{cellColor[0].name}</span>
-            </div>
-            <div style={styles.population}>
-              <Cell color={cellColor[1].color}>{this.state.redCount}</Cell>
-              <span style={{ paddingLeft: 10 }}>{cellColor[1].name}</span>
-            </div>
-            <div style={styles.population}>
-              <Cell color={cellColor[2].color}>{this.state.blueCount}</Cell>
-              <span style={{ paddingLeft: 10 }}>{cellColor[2].name}</span>
-            </div>
-            <div style={styles.population}>
-              <Cell color={cellColor[3].color}>{this.state.purpleCount}</Cell>
-              <span style={{ paddingLeft: 10 }}>{cellColor[3].name}</span>
-            </div>
-            <div style={styles.population}>
-              <Cell color={cellColor[4].color}>{this.state.orangeCount}</Cell>
-              <span style={{ paddingLeft: 10 }}>{cellColor[4].name}</span>
-            </div>
-          </div>
+        <div className='results'>
+          <Results
+            generationCount= {this.state.generationCount}
+            colorCount={this.state.colorCount}
+            initialCount={this.state.initialCount}
+            gamePausedOrEnded={this.state.gamePausedOrEnded} />
         </div>
       </div>
     );
@@ -346,32 +321,11 @@ class MainBoard extends Component {
 }
 
 const styles = {
-  container: {
-    display: 'flex',
-    flex: 1,
-  },
   buttonsContainer: {
     display: 'flex',
     paddingTop: 20,
     flexDirection: 'row',
     justifyContent: 'center',
-  },
-  boardContainer: {
-    flex: 2,
-  },
-  leftContainer: {
-    flex: 1,
-  },
-  rightContainer: {
-    flex: 1,
-  },
-  population: {
-    display: 'flex',
-    flexDirection: 'row',
-    marginTop: 10,
-    fontFamily: 'Roboto',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
   },
 };
 
@@ -379,7 +333,8 @@ const materialStyles = theme => ({
   button: {
     margin: theme.spacing.unit,
     color: 'black',
-    fontFamily: 'Roboto'
+    fontFamily: 'Roboto',
+    fontSize: 16,
   },
 });
 
