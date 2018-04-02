@@ -16,13 +16,23 @@ class App extends Component {
   }
 
   handleChange = pos => event => {
+    //let value = 0;
     if (event.target.value > 25) {
       event.target.value = 25;
-    } else if (event.target.value < 5 && event.target.value) {
-      event.target.value = 5;
-    };
+    }
+
+    // else if (event.target.value < 5 && event.target.value) {
+    //   value = event.target.value;
+    // };
 
     this.setState({ [pos]: parseInt(event.target.value, 10) });
+  };
+
+  checkInput = pos => event => {
+    if (event.target.value < 5) {
+      event.target.value = 5;
+      this.setState({ [pos]: parseInt(event.target.value, 10) });
+    }
   };
 
   gridSize = (e) => {

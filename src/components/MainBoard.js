@@ -35,7 +35,18 @@ class MainBoard extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    this.initializeBoard(nextProps.rows, nextProps.columns);
+    let rows = nextProps.rows;
+    let columns = nextProps.columns;
+
+    if (rows < 5) {
+      rows = 5;
+    };
+
+    if (columns < 5) {
+      columns = 5;
+    };
+
+    this.initializeBoard(rows, columns);
   }
 
   cloneArray(arr) {
@@ -298,7 +309,7 @@ class MainBoard extends Component {
               style={
                 {
                   display: 'flex',
-                  width: this.props.columns * 21,
+                  width: this.state.columns * 21,
                   flexDirection: 'row',
                   flexFlow: 'row wrap',
                 }
